@@ -7,14 +7,19 @@ void init()
 {
     msgManager = new MsgManager;
 }
+
+
 void release()
 {
     delete msgManager;
 }
+
+
 int main()
 {
-    cout << "This Chat On Line Server!" << endl;
-    cout << "wait new client..." << endl;
+    cout << "This is Chat On Line Server!" << endl;
+    cout << "bind 2020, wait new client..." << endl;
+
     init();
 
     muduo::net::EventLoop loop;

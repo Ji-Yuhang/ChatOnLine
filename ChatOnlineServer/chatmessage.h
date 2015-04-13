@@ -28,6 +28,7 @@ class MsgManager : public boost::noncopyable
 public:
     MsgManager();
     ~MsgManager();
+    static MsgManager* instance() {return g_msgManager_;}
     int maxMsgID() const {return max_id_;}
     void query(int index, int length);
     void insert(const std::string& content, int sender, int receiver);

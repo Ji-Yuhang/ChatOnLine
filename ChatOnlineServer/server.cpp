@@ -2,6 +2,8 @@
 #include "muduo/base/Logging.h"
 #include "boost/bind.hpp"
 #include "boost/function.hpp"
+#include "chatmessage.h"
+#include <assert.h>
 Server::Server(muduo::net::EventLoop* loop,
             const muduo::net::InetAddress& listenAddr)
     : loop_(loop)
@@ -21,16 +23,23 @@ void Server::start()
 }
 void Server::onConnection(const muduo::net::TcpConnectionPtr& conn)
 {
+
     LOG_INFO << "ChatServer - " << conn->peerAddress().toIpPort()<< " -> "
         << conn->localAddress().toIpPort() << "is " << (conn->connected()?"UP":"DOWN");
+
 }
 void Server::onMessage(const muduo::net::TcpConnectionPtr& conn,
             muduo::net::Buffer* buf,
             muduo::Timestamp time)
 {
-    muduo::string msg(buf->retrieveAllAsString());
-    LOG_INFO << conn->name() << "ChatServer" << msg.size() << "bytes, "
+    std::string msg(buf->peek(), buf->readableBytes());
+    LOG_INFO << conn->name() << " ChatServer " << msg.size() << " bytes, "
         << "data received at " << time.toString();
     conn->send(msg);
+    MsgManager* MM = MsgManager::instance();
+    assert(MM);
+    int sender = -1;
+    int receiver = -1;
+    MM->insert(msg, sender, receiver);
 }
  

@@ -17,6 +17,8 @@ ChatMessage::~ChatMessage()
 MsgManager* MsgManager::g_msgManager_ = 0;
 MsgManager::MsgManager()
 {
+    assert(!g_msgManager_);
+    g_msgManager_ = this;
     max_id_ = 0;
 }
 MsgManager::~MsgManager()
