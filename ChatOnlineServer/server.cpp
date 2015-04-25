@@ -92,16 +92,47 @@ memcpy(jsonBuf,msg.c_str(),buf->readableBytes());
 
         //TODO: dispose
 	    rapidjson::Value& type = doc["type"];
-	    LOG_INFO << type.GetString();
+        std::string handleType = type.GetString();
+	    LOG_INFO << "will dispose to -> "<<handleType;
+        disponseHandle(conn, msg,time);
+        
+	    //conn->send(msg);
+	    //MsgManager* MM = MsgManager::instance();
+	    //assert(MM);
+	    //int sender = -1;
+	    //int receiver = -1;
+	    //MM->insert(msg, sender, receiver);
+	    buf->retrieve(buf->readableBytes());
+    } else {
+        LOG_ERROR << "CANNOT PARSE JSON"<<msg;
+    }
+}
+void Server::disponseHandle(const muduo::net::TcpConnectionPtr& conn,
+        const std::string& json, muduo::Timestamp time) {
+    rapidjson::Document doc;
+    SimpleHandler jsonHandler;
+    rapidjson::Reader reader;
+    //rapidjson::StringStream ss(msg.c_str());
+    char jsonBuf[sizeof(msg.c_str())];
+memcpy(jsonBuf,msg.c_str(),buf->readableBytes());
+    LOG_INFO << jsonBuf << " size: "<< buf->readableBytes();
+    if (!doc.ParseInsitu(jsonBuf).HasParseError()) {
+    //if (reader.Parse(ss, jsonHandler)) {
+
+        //TODO: dispose
+	    rapidjson::Value& type = doc["type"];
+        std::string handleType = type.GetString();
+	    LOG_INFO << "actually process -> "<<handleType;
+        
 	    conn->send(msg);
 	    MsgManager* MM = MsgManager::instance();
 	    assert(MM);
 	    int sender = -1;
 	    int receiver = -1;
 	    MM->insert(msg, sender, receiver);
-	    buf->retrieve(buf->readableBytes());
     } else {
         LOG_ERROR << "CANNOT PARSE JSON"<<msg;
     }
 }
+ 
  

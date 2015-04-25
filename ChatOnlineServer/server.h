@@ -16,6 +16,8 @@ private:
     void onMessage(const muduo::net::TcpConnectionPtr& conn,
             muduo::net::Buffer* buf,
             muduo::Timestamp time);
+    void disponseHandle(const muduo::net::TcpConnectionPtr& conn,
+            const std::string& json, muduo::Timestamp time);
     muduo::net::EventLoop* loop_;
     muduo::net::TcpServer server_;
 };
