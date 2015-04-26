@@ -97,7 +97,7 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr& conn,
     rapidjson::Reader reader;
     //rapidjson::StringStream ss(msg.c_str());
     char jsonBuf[sizeof(msg.c_str())];
-memcpy(jsonBuf,msg.c_str(),buf->readableBytes());
+    memcpy(jsonBuf,msg.c_str(),buf->readableBytes());
     LOG_INFO << jsonBuf << " size: "<< buf->readableBytes();
     if (!doc.ParseInsitu(jsonBuf).HasParseError()) {
     //if (reader.Parse(ss, jsonHandler)) {
@@ -126,9 +126,9 @@ void Server::disponseHandle(const muduo::net::TcpConnectionPtr& conn,
     SimpleHandler jsonHandler;
     rapidjson::Reader reader;
     //rapidjson::StringStream ss(msg.c_str());
-    char jsonBuf[sizeof(msg.c_str())];
-memcpy(jsonBuf,msg.c_str(),buf->readableBytes());
-    LOG_INFO << jsonBuf << " size: "<< buf->readableBytes();
+    char jsonBuf[sizeof(json.c_str())];
+memcpy(jsonBuf,json.c_str(),json.size());
+    LOG_INFO << jsonBuf << " size: "<< json.size();
     if (!doc.ParseInsitu(jsonBuf).HasParseError()) {
     //if (reader.Parse(ss, jsonHandler)) {
 
@@ -141,7 +141,7 @@ memcpy(jsonBuf,msg.c_str(),buf->readableBytes());
         // TODO: handle
         std::map<std::string, boost::function<void()> >::iterator it = callBackMap_.find(handleType);
         if (it != callBackMap_.end()) {
-            it->second();
+            it->second(conn,doc,time);
         } else {
             LOG_ERROR << "WRONG CALLBACK TYPE: " << handleType;
         }
@@ -149,9 +149,9 @@ memcpy(jsonBuf,msg.c_str(),buf->readableBytes());
 	    assert(MM);
 	    int sender = -1;
 	    int receiver = -1;
-	    MM->insert(msg, sender, receiver);
+	    MM->insert(json, sender, receiver);
     } else {
-        LOG_ERROR << "CANNOT PARSE JSON"<<msg;
+        LOG_ERROR << "CANNOT PARSE JSON"<<json;
     }
 }
 

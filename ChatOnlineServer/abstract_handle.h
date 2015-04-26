@@ -6,11 +6,15 @@
 #include "rapidjson/reader.h"
 #include "rapidjson/error/en.h"
 #include <iostream>
-#include "server.h"
 #include <boost/bind.hpp>
+#include "muduo/net/TcpServer.h"
+#include "muduo/net/EventLoop.h"
+
+
 using namespace std;
 using namespace rapidjson;
 
+class Server;
 
 class AbstractHandle
 {
@@ -47,7 +51,7 @@ class NewMessage : public JsonFormat
 public:
     NewMessage(){}
     ~NewMessage(){}
-    void process(const muduo::net::TcpConnectionPtr& conn, const DataType& data,muduo::Timestamp time)
+    void process(const muduo::net::TcpConnectionPtr& conn, DataType data,muduo::Timestamp time)
     {
         std::cout << "This NewMessage Process function";
     
@@ -60,7 +64,7 @@ class SendMessage : public JsonFormat
 public:
     SendMessage(){}
     ~SendMessage(){}
-    void process(const muduo::net::TcpConnectionPtr& conn, const DataType& data,muduo::Timestamp time)
+    void process(const muduo::net::TcpConnectionPtr& conn, DataType data,muduo::Timestamp time)
     {
         std::cout << "This SendMessage Process function";
     
@@ -71,12 +75,7 @@ public:
 class Handle : public AbstractHandle
 {
 public:
-    Handle(Server* server)
-        : server(server)
-    {
-        server_->regCallBack("new_msg", boost::bind(&NewMessage::process, &newMessage_, _1, _2, _3))
-        server_->regCallBack("send_msg", boost::bind(&SendMessage::process, &sendMessage_, _1, _2, _3))
-    }
+    Handle(Server* server);
     ~Handle(){}
 private:
     Server* server_;

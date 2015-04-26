@@ -4,7 +4,7 @@
 #include "muduo/net/EventLoop.h"
 
 #include <boost/noncopyable.hpp>
-#include <boost/function>
+#include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
 #include "abstract_handle.h"
 class Server : public boost::noncopyable
@@ -24,7 +24,7 @@ private:
             const std::string& json, muduo::Timestamp time);
     muduo::net::EventLoop* loop_;
     muduo::net::TcpServer server_;
-    std::map<std::string, boost::function<void()> > callBackMap_;
+    std::map<std::string, boost::function<void(const muduo::net::TcpConnectionPtr&, rapidjson::Document,muduo::Timestamp)> > callBackMap_;
     std::map<muduo::net::TcpConnectionPtr, boost::shared_ptr<Handle> > handleMap_;
 };
 #endif
