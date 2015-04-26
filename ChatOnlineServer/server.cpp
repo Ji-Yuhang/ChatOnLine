@@ -56,6 +56,18 @@ void Server::onConnection(const muduo::net::TcpConnectionPtr& conn)
 
     LOG_INFO << "ChatServer - " << conn->peerAddress().toIpPort()<< " -> "
         << conn->localAddress().toIpPort() << "is " << (conn->connected()?"UP":"DOWN");
+    if (conn->connected()) {
+        // UP
+        boost::shared_ptr<Handle> handlePtr(new Handle(this));
+        handleMap_.insert(std::make_pair(conn, handlePtr ));
+    } else {
+        std::map<muduo::net::TcpConnectionPtr, boost::shared_ptr<Handle> >::iterator it = handleMap_.find(conn);
+        if (it != handleMap_.end()) {
+            handleMap_.erase(it);
+        } else {
+            LOG_ERROR << "BIG WARNNING: CANNOT ERASE HANDLE. THIS WILL LEAK MEMERY";
+        }
+    }
 
 }
 void Server::onMessage(const muduo::net::TcpConnectionPtr& conn,
@@ -108,7 +120,8 @@ memcpy(jsonBuf,msg.c_str(),buf->readableBytes());
     }
 }
 void Server::disponseHandle(const muduo::net::TcpConnectionPtr& conn,
-        const std::string& json, muduo::Timestamp time) {
+        const std::string& json, muduo::Timestamp time) 
+{
     rapidjson::Document doc;
     SimpleHandler jsonHandler;
     rapidjson::Reader reader;
@@ -124,7 +137,14 @@ memcpy(jsonBuf,msg.c_str(),buf->readableBytes());
         std::string handleType = type.GetString();
 	    LOG_INFO << "actually process -> "<<handleType;
         
-	    conn->send(msg);
+	    //conn->send(msg);
+        // TODO: handle
+        std::map<std::string, boost::function<void()> >::iterator it = callBackMap_.find(handleType);
+        if (it != callBackMap_.end()) {
+            it->second();
+        } else {
+            LOG_ERROR << "WRONG CALLBACK TYPE: " << handleType;
+        }
 	    MsgManager* MM = MsgManager::instance();
 	    assert(MM);
 	    int sender = -1;
@@ -133,6 +153,11 @@ memcpy(jsonBuf,msg.c_str(),buf->readableBytes());
     } else {
         LOG_ERROR << "CANNOT PARSE JSON"<<msg;
     }
+}
+
+void Server::regCallBack(const std::string& type, boost::function<void()> callBack)
+{
+    callBackMap_.insert(std::make_pair(type, callBack));
 }
  
  
