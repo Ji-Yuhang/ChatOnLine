@@ -77,6 +77,7 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr& conn,
     //TODO: 增加分包逻辑
     //TODO: 增加回调处理
     //
+    if (!buf->findCRLF()) return;
     LOG_INFO << buf->findCRLF();
     std::string temp(buf->findCRLF());
     // TODO: 解析json
@@ -106,7 +107,7 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr& conn,
 	    rapidjson::Value& type = doc["type"];
         std::string handleType = type.GetString();
 	    LOG_INFO << "will dispose to -> "<<handleType;
-        disponseHandle(conn, msg,time);
+        dispatcherHandle(conn, doc,time);
         
 	    //conn->send(msg);
 	    //MsgManager* MM = MsgManager::instance();
@@ -114,34 +115,38 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr& conn,
 	    //int sender = -1;
 	    //int receiver = -1;
 	    //MM->insert(msg, sender, receiver);
-	    buf->retrieve(buf->readableBytes());
+	    buf->retrieve(buf->readableBytes() );
     } else {
         LOG_ERROR << "CANNOT PARSE JSON"<<msg;
     }
 }
-void Server::disponseHandle(const muduo::net::TcpConnectionPtr& conn,
-        const std::string& json, muduo::Timestamp time) 
+void Server::dispatcherHandle(const muduo::net::TcpConnectionPtr& conn,rapidjson::Document& doc,muduo::Timestamp time) 
 {
-    rapidjson::Document doc;
+    //rapidjson::Document doc;
     SimpleHandler jsonHandler;
     rapidjson::Reader reader;
     //rapidjson::StringStream ss(msg.c_str());
-    char jsonBuf[sizeof(json.c_str())];
-memcpy(jsonBuf,json.c_str(),json.size());
-    LOG_INFO << jsonBuf << " size: "<< json.size();
-    if (!doc.ParseInsitu(jsonBuf).HasParseError()) {
+    //char jsonBuf[sizeof(json.c_str())];
+//memcpy(jsonBuf,json.c_str(),json.size() - 2);
+    //LOG_INFO << jsonBuf << " size: "<< json.size();
+    //if (!doc.ParseInsitu(jsonBuf).HasParseError()) {
+    if (!doc.HasParseError()) {
     //if (reader.Parse(ss, jsonHandler)) {
 
         //TODO: dispose
 	    rapidjson::Value& type = doc["type"];
         std::string handleType = type.GetString();
+	    //rapidjson::Value& type = doc["type"];
+        //std::string handleType = type.GetString();
+	
 	    LOG_INFO << "actually process -> "<<handleType;
         
 	    //conn->send(msg);
         // TODO: handle
-        std::map<std::string, boost::function<void()> >::iterator it = callBackMap_.find(handleType);
+        std::map<std::string, TcpCallBack >::iterator it = callBackMap_.find(handleType);
         if (it != callBackMap_.end()) {
-            it->second(conn,doc,time);
+            TcpCallBack callback = it->second;
+            callback(conn,doc,time);
         } else {
             LOG_ERROR << "WRONG CALLBACK TYPE: " << handleType;
         }
@@ -149,13 +154,13 @@ memcpy(jsonBuf,json.c_str(),json.size());
 	    assert(MM);
 	    int sender = -1;
 	    int receiver = -1;
-	    MM->insert(json, sender, receiver);
+	    MM->insert(handleType, sender, receiver);
     } else {
-        LOG_ERROR << "CANNOT PARSE JSON"<<json;
+        LOG_ERROR << "CANNOT PARSE JSON";
     }
 }
 
-void Server::regCallBack(const std::string& type, boost::function<void()> callBack)
+void Server::regCallBack(const std::string& type, TcpCallBack callBack)
 {
     callBackMap_.insert(std::make_pair(type, callBack));
 }

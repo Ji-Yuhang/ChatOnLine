@@ -9,6 +9,7 @@
 #include <boost/bind.hpp>
 #include "muduo/net/TcpServer.h"
 #include "muduo/net/EventLoop.h"
+#include "muduo/base/Logging.h"
 
 
 using namespace std;
@@ -45,41 +46,4 @@ public:
     ~XmlFormat(){}
 };
 
-
-class NewMessage : public JsonFormat
-{
-public:
-    NewMessage(){}
-    ~NewMessage(){}
-    void process(const muduo::net::TcpConnectionPtr& conn, DataType data,muduo::Timestamp time)
-    {
-        std::cout << "This NewMessage Process function";
-    
-    }
-
-};
-
-class SendMessage : public JsonFormat
-{
-public:
-    SendMessage(){}
-    ~SendMessage(){}
-    void process(const muduo::net::TcpConnectionPtr& conn, DataType data,muduo::Timestamp time)
-    {
-        std::cout << "This SendMessage Process function";
-    
-    }
-
-};
-
-class Handle : public AbstractHandle
-{
-public:
-    Handle(Server* server);
-    ~Handle(){}
-private:
-    Server* server_;
-    NewMessage newMessage_;
-    SendMessage sendMessage_;
-};
 #endif
