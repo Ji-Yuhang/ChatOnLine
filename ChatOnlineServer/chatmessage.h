@@ -6,7 +6,8 @@
 #include <vector>
 #include <map>
 #include <boost/shared_ptr.hpp>
-
+#include "muduo/net/Connector.h"
+#include "muduo/net/TcpServer.h"
 class ChatMessage
 {
 public:
@@ -36,9 +37,11 @@ public:
     void read();
     void clear();
 
+    void broadcast(const muduo::net::TcpConnectionPtr& conn);
 private:
     static MsgManager* g_msgManager_;
     int max_id_;
     std::map<int, boost::shared_ptr<ChatMessage> > msgList_;
+    std::string tempMessage_;
 };
 #endif
