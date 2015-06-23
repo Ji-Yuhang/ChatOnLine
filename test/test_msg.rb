@@ -31,11 +31,11 @@ Thread.new {
     # Thread #2 runs this code
     loop do
         r = socket.readline
-        ap "receive string > " + r
+        #ap "receive string > " + r
         temp = JSON.parse r
 
-        ap "receive json > "
-        ap temp
+        #ap "receive json > "
+        #ap temp
         rmsg = temp["data"][0]["content"]
         ap "receive > " +rmsg
     end
@@ -58,7 +58,7 @@ loop do
     ap "tojson > " 
     ap newMessage
     aJson = newMessage.to_json
-    ap "to string > " + aJson
+    #ap "to string > " + aJson
     socket.write(aJson+"\r\n")
 
 end
