@@ -2,7 +2,6 @@ require 'socket'
 require 'awesome_print'
 require 'json'
 #socket = TCPSocket.new('23.88.3.15',2020)
-socket = TCPSocket.new('127.0.0.1',2020)
 json = %Q{{"type":"new_msg","data":[{"id":"101","content":"english","sender":"liangjie","receiver":"group202"}]}\r\n}
 json1 = %Q{{"type":"new_msg","data":[{"id":"101","content":"晚上谁开黑","sender":"liangjie","receiver":"group202"}]}\r\n}
 # parse core dump
@@ -27,6 +26,7 @@ json5 = %Q{{"type":"new_msg","data":"中国"}\r\n}
     ]
 }
 =end
+=begin
 Thread.new {
     # Thread #2 runs this code
     loop do
@@ -42,24 +42,35 @@ Thread.new {
 
 
 }
-loop do
-    content = gets
-    ap "send > "+content
-    newMessage = {}
-    newMessage["type"] = "send_msg"
-    data = []
-    one = {}
-    one["id"] = "101"
-    one["content"] = content
-    one["sender"] = "liangjie"
-    one["receiver"] = "group202"
-    data.push one
-    newMessage["data"] = data;
-    ap "tojson > " 
-    ap newMessage
-    aJson = newMessage.to_json
-    #ap "to string > " + aJson
-    socket.write(aJson+"\r\n")
+=end
+content = " I am content"
+newMessage = {}
+newMessage["type"] = "send_msg"
+data = []
+one = {}
+one["id"] = "101"
+one["content"] = content
+one["sender"] = "liangjie"
+one["receiver"] = "group202"
+data.push one
+newMessage["data"] = data;
+ap "tojson > " 
+ap newMessage
+aJson = newMessage.to_json
 
+socketList = []
+num = 0
+max = ARGV[0].to_i
+loop do
+    ap num
+    break if num> max
+    
+    socket = TCPSocket.new('127.0.0.1',2007)
+    socketList.push socket
+    socket.write(aJson+"\r\n")
+    num +=1
 end
-socket.close()
+socketList.each do |conn|
+    conn.close
+end
+

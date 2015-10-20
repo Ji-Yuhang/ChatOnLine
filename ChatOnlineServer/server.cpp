@@ -46,6 +46,7 @@ Server::Server(muduo::net::EventLoop* loop,
     server_.setConnectionCallback(boost::bind(&Server::onConnection, this, _1));
     server_.setMessageCallback(boost::bind(&Server::onMessage, this, _1, _2, _3));
     handle_ = new Handle(this);
+    server_.setThreadNum(4);
 
 }
 Server::~Server()
@@ -68,11 +69,18 @@ void Server::callbackAllConnection(boost::function<void(const muduo::net::TcpCon
 }
 void Server::onConnection(const muduo::net::TcpConnectionPtr& conn)
 {
+    static int max = 0;
 
     LOG_INFO << "ChatServer - " << conn->peerAddress().toIpPort()<< " -> "
         << conn->localAddress().toIpPort() << "is " << (conn->connected()?"UP":"DOWN");
+
+    muduo::MutexLockGuard lock(mutex_);
     if (conn->connected()) {
+        max++;
         allConnection_.push_back(conn);
+
+        LOG_INFO<<"MAX CONNCTION NUMBER IS : "<<max;
+        LOG_INFO<<"CURRNET CONNCTION NUMBER IS : "<<allConnection_.size();
         // UP
         //boost::shared_ptr<Handle> handlePtr(new Handle(this));
         //handleMap_.insert(std::make_pair(conn, handlePtr ));
@@ -82,6 +90,10 @@ void Server::onConnection(const muduo::net::TcpConnectionPtr& conn)
             if (allConnection_[i] == conn) index = i;
         }
         if (index != -1) allConnection_.erase(allConnection_.begin() + index);
+        LOG_INFO<<"MAX CONNCTION NUMBER IS : "<<max;
+        LOG_INFO<<"CURRNET CONNCTION NUMBER IS : "<<allConnection_.size();
+        // UP
+        // UP
         //std::map<muduo::net::TcpConnectionPtr, boost::shared_ptr<Handle> >::iterator it = handleMap_.find(conn);
         //if (it != handleMap_.end()) {
             //handleMap_.erase(it);
@@ -95,6 +107,8 @@ void Server::onMessage(const muduo::net::TcpConnectionPtr& conn,
             muduo::net::Buffer* buf,
             muduo::Timestamp time)
 {
+
+    muduo::MutexLockGuard lock(mutex_);
     if (!buf->findCRLF()) return;
     
     std::string msg(buf->peek(), buf->readableBytes());

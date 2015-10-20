@@ -6,6 +6,7 @@
 #include <boost/noncopyable.hpp>
 #include <boost/function.hpp>
 #include <boost/shared_ptr.hpp>
+#include "muduo/base/Mutex.h"
 #include <vector>
 #include "abstract_handle.h"
 #include "handle.h"
@@ -36,5 +37,6 @@ private:
     std::vector<muduo::net::TcpConnectionPtr> allConnection_;
     Handle* handle_;
     static Server* g_server_;
+    muduo::MutexLock mutex_;
 };
 #endif
